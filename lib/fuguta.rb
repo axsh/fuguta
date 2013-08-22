@@ -45,7 +45,9 @@ module Fuguta
         end
 
         @conf.parse_dsl do |me|
+          me.instance_variable_set(:@loading_path, path.to_s)
           me.instance_eval(buf, path.to_s)
+          me.instance_variable_set(:@loading_path, nil)
         end
       end
 
@@ -62,9 +64,36 @@ module Fuguta
       def initialize(subject)
         @subject = subject
         @config = subject.config
+        @loading_path = nil
       end
 
       def config
+        self
+      end
+
+      # Load separate configuration files from the file.
+      #
+      # Load relative path file.
+      # ----------------
+      #   load 'test2.conf'
+      #
+      # Load absolute path file.
+      # ----------------
+      #   load '/etc/test2.conf'
+      def load(*paths)
+        l = Loader.new(@subject)
+        paths.each { |path|
+          if path =~ %r{^/}
+            # Load absolute path
+            l.load(path)
+          else
+            # Load relative path
+            base_conf_dir = (@loading_path.nil? ? Dir.pwd : File.dirname(@loading_path))
+            l.load(File.expand_path(path, base_conf_dir))
+          end
+        }
+        l.validate
+        
         self
       end
     end
