@@ -276,6 +276,21 @@ module Fuguta
         @on_param_create_hooks.clear
       end
 
+      # Load configuration file
+      #
+      # 1. Simply loads single configuration file.
+      #   conf = ConfigurationClass.load('1.conf')
+      #
+      # 2. Loads multiple files and merge.
+      #
+      # file1.conf:
+      #   config.param1 = 1
+      #
+      # file2.conf:
+      #   config.param1 = 2
+      #
+      #   conf = ConfigurationClass.load('file1.conf', 'file2.conf')
+      #   conf.param1 == 2
       def load(*paths)
         c = self.new
 
