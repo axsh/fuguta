@@ -9,4 +9,5 @@ Gem::Specification.new do |s|
   s.homepage    = "https://github.com/axsh/fuguta"
   s.require_path = ['lib']
   s.files       = `git ls-files`.split($/)
+  s.license     = 'GPLv3'
 end
