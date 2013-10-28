@@ -5,6 +5,16 @@ describe Fuguta::Configuration do
     param :param1
     param :param2
   end
+
+  class NestTest1 < Test1
+    param :param3
+
+    def validate(errors)
+      if @config[:param3].nil?
+        errors << "Need to set param3"
+      end
+    end
+  end
   
   it "loads conf file" do
     conf = Test1.load(File.expand_path('../test1.conf', __FILE__))
@@ -19,8 +29,9 @@ describe Fuguta::Configuration do
   end
 
   it "allows nested imports/loads" do
-    conf = Test1.load(File.expand_path('../nest-test1.conf', __FILE__))
+    conf = NestTest1.load(File.expand_path('../nest-test1.conf', __FILE__))
     expect(conf.param1).to eq(10)
     expect(conf.param2).to eq(20)
+    expect(conf.param3).to eq(30)
   end
 end

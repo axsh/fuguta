@@ -92,7 +92,6 @@ module Fuguta
             l.load(File.expand_path(path, base_conf_dir))
           end
         }
-        l.validate
         
         self
       end
