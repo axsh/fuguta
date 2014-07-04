@@ -34,4 +34,12 @@ describe Fuguta::Configuration do
     expect(conf.param2).to eq(20)
     expect(conf.param3).to eq(30)
   end
+
+  context('Syntax Error') do
+    it "throws syntax error" do
+      expect {
+        Test1.load(File.expand_path('../syntax-error.conf', __FILE__))
+      }.to raise_error(Fuguta::Configuration::SyntaxError)
+    end
+  end
 end

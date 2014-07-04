@@ -11,6 +11,27 @@ module Fuguta
       end
     end
 
+    class SyntaxError < StandardError
+      # self.cause() is as of Ruby 2.1 so we
+      # handles root error .
+      attr_reader :root_cause, :source
+
+      def initialize(root_cause, source="")
+        super("Syntax Error")
+        raise ArgumentError, 'root_cause' unless root_cause.is_a?(::Exception)
+        @root_cause = root_cause
+        @source = source
+      end
+
+      def message
+        if @root_cause.backtrace.first =~ /:(\d+):in `/ ||
+            @root_cause.backtrace.first =~ /:(\d+)$/
+          line = $1.to_i
+        end
+        "%s from %s:%d" % [super(), @source, line]
+      end
+    end
+
     def self.walk_tree(conf, &blk)
       raise ArgumentError, "conf must be a 'Configuration'. Got '#{conf.class}'." unless conf.is_a?(Configuration)
 
@@ -380,6 +401,8 @@ module Fuguta
     def validate(errors)
     end
 
+    SYNTAX_ERROR_SOURCES=[ScriptError, NameError].freeze
+
     def parse_dsl(&blk)
       dsl = self.class.const_get(:DSL, false)
       raise "DSL module was not found" unless dsl && dsl.is_a?(Module)
@@ -388,7 +411,11 @@ module Fuguta
       cp_class.__send__(:include, dsl)
       cp = cp_class.new(self)
 
-      cp.instance_eval(&blk)
+      begin
+        cp.instance_eval(&blk)
+      rescue *SYNTAX_ERROR_SOURCES => e
+        raise Fuguta::SyntaxError.new(e, cp.instance_variable_get(:@loading_path))
+      end
 
       self
     end
