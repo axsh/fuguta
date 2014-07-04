@@ -39,7 +39,7 @@ describe Fuguta::Configuration do
     it "throws syntax error" do
       expect {
         Test1.load(File.expand_path('../syntax-error.conf', __FILE__))
-      }.to raise_error(Fuguta::Configuration::SyntaxError)
+      }.to raise_error(Fuguta::SyntaxError)
     end
   end
 end
