@@ -176,6 +176,59 @@ module Fuguta
       end
     end
 
+    # Helper method to add sub configuration block.
+    # 
+    # class A < Fuguta::Configuration
+    #   class SubSection1 < Fuguta::Configuration
+    #     param :p1
+    #     section :section2, self
+    #   end
+    #
+    #   section :section1, SubSection1
+    #
+    #   def validate(errors)
+    #     if @config[:section1]
+    #   end
+    # end
+    #
+    # example.conf
+    # --------------------
+    # section1 {
+    #   p1 100
+    #   section2 {
+    #     p1 100
+    #   }
+    # }
+    # # or
+    # section1.p1 = 100
+    # section1.section2.p1 = 100
+    module Section
+      module ClassMethods
+        def section(section_keyword, conf_class, *new_args)
+          DSL.class_eval %Q{
+            def #{section_keyword}(&blk)
+              @config[:#{section_keyword}].parse_dsl(&blk) if blk
+              @config[:#{section_keyword}]
+            end
+          }
+
+          on_initialize_hook do |c|
+            c.instance_eval %Q{
+              @config[:#{section_keyword}] = #{conf_class}.new(self, *new_args)
+            }
+          end
+        end
+      end
+
+      private
+      def self.included(klass)
+        unless klass < Fuguta::Configuration
+          raise TypeError, "Expected to include from Fuguta::Configuration subclass."
+        end
+        klass.exented ClassMethods
+      end
+    end
+
     class << self
       def on_initialize_hook(&blk)
         @on_initialize_hooks << blk
