@@ -140,23 +140,63 @@ module Fuguta
         #   p self.configuration_class # => A::Configuration
         # end
         def def_configuration(&blk)
-          # create new configuration class if not exist.
-          if self.const_defined?(:Configuration, false)
-            unless self.const_get(:Configuration, false) < Fuguta::Configuration
-              raise TypeError, "#{self}::Configuration constant is defined already for another purpose."
-            end
-          else
-            self.const_set(:Configuration, Class.new(self.configuration_class || Fuguta::Configuration))
-            @configuration_class = self.const_get(:Configuration, false)
-          end
-          if blk
-            @configuration_class.module_eval(&blk)
-          end
+          Fuguta.configuration(self, &blk)
         end
 
         def configuration_class
           ConfigurationMethods.find_configuration_class(self)
         end
+      end
+
+      #
+      # # Main configuration class and loader.
+      # class Conf < Fuguta::Configuration
+      #   section :a, 'A'
+      #
+      #   def a
+      #     @config[:a]
+      #   end
+      #   DSL do
+      #     def a(&blk)
+      #       @config[:a] = B::Configuration.new()
+      #     end
+      #   end
+      # end
+      #
+      # Conf.load('./test.conf')
+      #-------------------------------
+      # require 'fuguta'
+      #
+      # class A
+      #   Fuguta.configuration(self) do
+      #     param :p1
+      #     param :p2
+      #   end # => A::Configuration class object
+      # end
+      #
+      # class B < A
+      #   Fuguta.configuration(self) do
+      #     param :p3
+      #   end # => B::Configuration class object
+      # end
+      def ::Fuguta.configuration(klass, &blk)
+        # TODO: add opts argument and allow to set parent class
+        # manually.
+        parent_conf_class = ConfigurationMethods.find_configuration_class(klass)
+        klass.instance_eval {
+          if self.const_defined?(:Configuration, false)
+            unless self.const_get(:Configuration, false) < Fuguta::Configuration
+              raise TypeError, "#{self}::Configuration constant is defined already for another purpose."
+            end
+          else
+            @configuration_class = Class.new(parent_conf_class || Fuguta::Configuration)
+            klass.const_set(:Configuration, @configuration_class)
+          end
+          if blk
+            @configuration_class.module_eval(&blk)
+          end
+          @configuration_class
+        }
       end
 
       def self.find_configuration_class(c)
