@@ -15,21 +15,23 @@ describe Fuguta::Configuration do
       end
     end
   end
-  
+
+  let(:conf_path) { File.expand_path('../conf_files', __FILE__) }
+
   it "loads conf file" do
-    conf = Test1.load(File.expand_path('../test1.conf', __FILE__))
+    conf = Test1.load("#{conf_path}/test1.conf")
     expect(conf.param1).to eq(1)
     expect(conf.param2).to eq(2)
   end
 
   it "loads multiple conf files" do
-    conf = Test1.load(File.expand_path('../test1.conf', __FILE__), File.expand_path('../test2.conf', __FILE__))
+    conf = Test1.load("#{conf_path}/test1.conf", "#{conf_path}/test2.conf")
     expect(conf.param1).to eq(10)
     expect(conf.param2).to eq(20)
   end
 
   it "allows nested imports/loads" do
-    conf = NestTest1.load(File.expand_path('../nest-test1.conf', __FILE__))
+    conf = NestTest1.load("#{conf_path}/nest-test1.conf")
     expect(conf.param1).to eq(10)
     expect(conf.param2).to eq(20)
     expect(conf.param3).to eq(30)
@@ -38,7 +40,7 @@ describe Fuguta::Configuration do
   context('Syntax Error') do
     it "throws syntax error" do
       expect {
-        Test1.load(File.expand_path('../syntax-error.conf', __FILE__))
+        Test1.load("#{conf_path}/syntax-error.conf")
       }.to raise_error(Fuguta::SyntaxError)
     end
   end
