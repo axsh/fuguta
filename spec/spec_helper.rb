@@ -8,4 +8,6 @@ require 'rspec'
 require 'fuguta'
 
 RSpec.configure do |config|
+  config.formatter = :documentation
+  config.color = true
 end

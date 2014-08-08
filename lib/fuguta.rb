@@ -33,6 +33,18 @@ module Fuguta
   class Configuration
     ValidationError = Fuguta::ValidationError
 
+    def self.usual_paths(paths = nil)
+      if paths
+        @usual_paths = paths
+      else
+        @usual_paths
+      end
+    end
+
+    def usual_paths
+      self.class.usual_paths
+    end
+
     def self.walk_tree(conf, &blk)
       raise ArgumentError, "conf must be a 'Configuration'. Got '#{conf.class}'." unless conf.is_a?(Configuration)
 
@@ -54,14 +66,20 @@ module Fuguta
         @conf = conf
       end
 
-      def load(path)
-        buf = String.new
-        case path
+      def load(path = nil)
+        buf = case path
+        when NilClass
+          raise "No path given and usual_paths not set" unless @conf.usual_paths
+
+          path = @conf.usual_paths.find { |path| File.exists?(path) } ||
+            raise("None of the usual paths existed: #{@conf.usual_paths.join(", ")}")
+
+          File.read(path)
         when String
           raise "does not exist: #{path}" unless File.exists?(path)
-          buf = File.read(path)
+          File.read(path)
         when IO
-          path.lines.each { |l| buf += l }
+          path.lines.join
         else
           raise "Unknown type: #{path.class}"
         end
@@ -114,7 +132,7 @@ module Fuguta
             l.load(File.expand_path(path, base_conf_dir))
           end
         }
-        
+
         self
       end
     end
@@ -246,7 +264,7 @@ module Fuguta
           end
         }
       end
-      
+
       def alias_param (alias_name, ref_name)
         # getter
         self.class_eval %Q{
@@ -317,9 +335,12 @@ module Fuguta
 
         l = Loader.new(c)
 
-        paths.each { |path|
-          l.load(path)
-        }
+        if paths.empty?
+          l.load
+        else
+          paths.each { |path| l.load(path) }
+        end
+
         l.validate
 
         c
