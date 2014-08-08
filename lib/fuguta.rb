@@ -69,6 +69,8 @@ module Fuguta
       def load(path = nil)
         buf = case path
         when NilClass
+          raise "No path given and usual_paths not set" unless @conf.usual_paths
+
           path = @conf.usual_paths.find { |path| File.exists?(path) } ||
             raise("None of the usual paths existed: #{@conf.usual_paths.join(", ")}")
 
@@ -130,7 +132,7 @@ module Fuguta
             l.load(File.expand_path(path, base_conf_dir))
           end
         }
-        
+
         self
       end
     end
@@ -262,7 +264,7 @@ module Fuguta
           end
         }
       end
-      
+
       def alias_param (alias_name, ref_name)
         # getter
         self.class_eval %Q{
@@ -333,9 +335,12 @@ module Fuguta
 
         l = Loader.new(c)
 
-        paths.each { |path|
-          l.load(path)
-        }
+        if paths.empty?
+          l.load
+        else
+          paths.each { |path| l.load(path) }
+        end
+
         l.validate
 
         c
