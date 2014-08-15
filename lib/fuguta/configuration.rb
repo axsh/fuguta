@@ -331,8 +331,8 @@ module Fuguta
     attr_reader :config, :parent
 
     def initialize(parent=nil)
-      unless parent.nil?
-        raise ArgumentError, "parent must be a 'Fuguta::Configuration'. Got '#{parent.class}'." unless parent.is_a?(Fuguta::Configuration)
+      if !parent.nil? && !parent.is_a?(Fuguta::Configuration)
+        raise ArgumentError, "parent must be a 'Fuguta::Configuration'. Got '#{parent.class}'."
       end
       @config = {}
       @parent = parent
