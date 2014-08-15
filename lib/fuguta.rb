@@ -32,3 +32,4 @@ module Fuguta
 end
 
 require 'fuguta/configuration'
+require 'fuguta/loader'
