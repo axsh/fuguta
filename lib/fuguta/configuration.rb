@@ -36,7 +36,7 @@ module Fuguta
       }
     end
 
-    class DSLProxy
+    class DSLProxy < BasicObject
       def initialize(subject)
         @subject = subject
         @config = subject.config
@@ -64,8 +64,8 @@ module Fuguta
             l.load(path)
           else
             # Load relative path
-            base_conf_dir = (@loading_path.nil? ? Dir.pwd : File.dirname(@loading_path))
-            l.load(File.expand_path(path, base_conf_dir))
+            base_conf_dir = (@loading_path.nil? ? ::Dir.pwd : ::File.dirname(@loading_path))
+            l.load(::File.expand_path(path, base_conf_dir))
           end
         }
 
@@ -372,7 +372,8 @@ module Fuguta
       begin
         cp.instance_eval(&blk)
       rescue *SYNTAX_ERROR_SOURCES => e
-        raise Fuguta::SyntaxError.new(e, cp.instance_variable_get(:@loading_path))
+        raise
+        #raise Fuguta::SyntaxError.new(e, cp.instance_exec { @loading_path })
       end
 
       self

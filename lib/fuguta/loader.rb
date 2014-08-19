@@ -26,9 +26,11 @@ module Fuguta
             end
 
       @conf.parse_dsl do |me|
-        me.instance_variable_set(:@loading_path, path.to_s)
+        # DSLProxy is a child of BasicObject so
+        # #instance_variable_get/set are unavailable.
+        me.instance_eval "@loading_path='#{path.to_s}'"
         me.instance_eval(buf, path.to_s)
-        me.instance_variable_set(:@loading_path, nil)
+        me.instance_exec { @loading_path = nil }
       end
     end
 
