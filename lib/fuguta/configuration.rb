@@ -372,8 +372,11 @@ module Fuguta
       begin
         cp.instance_eval(&blk)
       rescue *SYNTAX_ERROR_SOURCES => e
-        raise
-        #raise Fuguta::SyntaxError.new(e, cp.instance_exec { @loading_path })
+        if ENV['FUGUTA_DEBUG']
+          raise e
+        else
+          raise Fuguta::SyntaxError.new(e, cp.instance_exec { @loading_path })
+        end
       end
 
       self
