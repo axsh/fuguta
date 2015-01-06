@@ -286,24 +286,30 @@ module Fuguta
     SYNTAX_ERROR_SOURCES=[ScriptError, NameError].freeze
 
     def parse_dsl(&blk)
-      dsl = self.class.const_get(:DSL, false)
-      raise "DSL module was not found" unless dsl && dsl.is_a?(Module)
-
-      cp_class = DSLProxy.dup
-      cp_class.__send__(:include, dsl)
-      cp = cp_class.new(self)
-
+      dsl = dsl_proxy()
       begin
-        cp.instance_eval(&blk)
+        dsl.instance_eval(&blk)
       rescue *SYNTAX_ERROR_SOURCES => e
         if ENV['FUGUTA_DEBUG']
           raise e
         else
-          raise Fuguta::SyntaxError.new(e, cp.instance_exec { @loading_path })
+          raise Fuguta::SyntaxError.new(e, dsl.instance_exec { @loading_path })
         end
       end
 
       self
+    end
+
+    # Returns DSL proxy object of the current class.
+    def dsl_proxy
+      dsl_mod = self.class.const_get(:DSL, false)
+      unless dsl_mod && dsl_mod.is_a?(Module)
+        raise "#{self.class}::DSL module is not defined"
+      end
+
+      cp_class = Class.new(DSLProxy)
+      cp_class.__send__(:include, dsl_mod)
+      cp_class.new(self)
     end
 
     private
