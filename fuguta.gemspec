@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.description = "A configuration framework for Ruby programs"
   s.authors     = ["Axsh co. LTD"]
   s.homepage    = "https://github.com/axsh/fuguta"
-  s.require_path = ['lib']
+  s.require_path = 'lib'
   s.files       = `git ls-files`.split($/)
   s.license     = 'LGPLv3'
 end
