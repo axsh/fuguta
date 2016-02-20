@@ -22,6 +22,19 @@ describe Fuguta::Configuration do
     end)
   end
 
+  describe "#new" do
+    it "succeeds without argument" do
+      expect(Test1.new).to be_kind_of(Fuguta::Configuration)
+    end
+
+    it "does not accept non-Fuguta::Configuration subclass object" do
+      parent = Object.new
+      expect {
+        Test1.new(parent)
+      }.to raise_error(ArgumentError)
+    end
+  end
+
   describe "#load" do
     let(:conf_path) { File.expand_path('../conf_files', __FILE__) }
 
